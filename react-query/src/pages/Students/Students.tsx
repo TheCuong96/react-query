@@ -41,7 +41,7 @@ export default function Students() {
   const page = Number(queryString.page) || 1
 
   const { data, isLoading } = useQuery({
-    queryKey: ['students', page],
+    queryKey: ['students', page], // queryKey này chúng ta có thể hiểu phần tử thứ nhất là 1 key giống như trong localStorage, và nó dùng để định danh cái api mà chúng ta đang tương tác, nhờ vậy nên ReactQueryDevtools mới có thể truy ra và show lên cho ta xem..., còn page ở đây nó giống như param trong useEffect, khi thằng này bị thay đổi thì nó sẽ chạy lại queryFn, và queryFn sẽ là 1 hàm call api thông thường 
     queryFn: () => getStudents(page, 10)
   })
   console.log('data', data)
