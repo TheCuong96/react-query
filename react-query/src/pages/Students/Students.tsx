@@ -36,32 +36,39 @@ const RenderListStudents = (listStudents: Student[]): JSX.Element => {
 
 export default function Students() {
   const [listStudents, setListStudents] = useState<StudentsType>([])
+  const [loading, setLoading] = useState<boolean>(true)
   useEffect(() => {
-    getStudents(1, 10).then((res) => {
-      console.log(res)
-      setListStudents(res.data)
-    })
+    getStudents(1, 10)
+      .then((res) => {
+        console.log(res)
+        setListStudents(res.data)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }, [])
   // console.log('listStudents', listStudents)
   return (
     <div>
       <h1 className='text-lg'>Students</h1>
-      {/* <div role='status' className='mt-6 animate-pulse'>
-        <div className='mb-4 h-4  rounded bg-gray-200 dark:bg-gray-700' />
-        <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
-        <div className='mb-2.5 h-10 rounded bg-gray-200 dark:bg-gray-700' />
-        <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
-        <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
-        <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
-        <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
-        <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
-        <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
-        <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
-        <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
-        <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
-        <div className='h-10  rounded bg-gray-200 dark:bg-gray-700' />
-        <span className='sr-only'>Loading...</span>
-      </div> */}
+      {loading && (
+        <div role='status' className='mt-6 animate-pulse'>
+          <div className='mb-4 h-4  rounded bg-gray-200 dark:bg-gray-700' />
+          <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
+          <div className='mb-2.5 h-10 rounded bg-gray-200 dark:bg-gray-700' />
+          <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
+          <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
+          <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
+          <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
+          <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
+          <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
+          <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
+          <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
+          <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
+          <div className='h-10  rounded bg-gray-200 dark:bg-gray-700' />
+          <span className='sr-only'>Loading...</span>
+        </div>
+      )}
       <div className='relative mt-6 overflow-x-auto shadow-md sm:rounded-lg'>
         <table className='w-full text-left text-sm text-gray-500 dark:text-gray-400'>
           <thead className='bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400'>
@@ -83,37 +90,39 @@ export default function Students() {
               </th>
             </tr>
           </thead>
-          <tbody>{RenderListStudents(listStudents)}</tbody>
+          <tbody>{!loading && RenderListStudents(listStudents)}</tbody>
         </table>
       </div>
 
-      <div className='mt-6 flex justify-center'>
-        <nav aria-label='Page navigation example'>
-          <ul className='inline-flex -space-x-px'>
-            <li>
-              <span className='cursor-not-allowed rounded-l-lg border border-gray-300 bg-white py-2 px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'>
-                Previous
-              </span>
-            </li>
-            <li>
-              <a
-                className='border border-gray-300 bg-white bg-white py-2 px-3 leading-tight text-gray-500 text-gray-500  hover:bg-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:text-gray-700'
-                href='/students?page=8'
-              >
-                1
-              </a>
-            </li>
-            <li>
-              <a
-                className='rounded-r-lg border border-gray-300 bg-white py-2 px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
-                href='/students?page=1'
-              >
-                Next
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </div>
+      {!loading && (
+        <div className='mt-6 flex justify-center'>
+          <nav aria-label='Page navigation example'>
+            <ul className='inline-flex -space-x-px'>
+              <li>
+                <span className='cursor-not-allowed rounded-l-lg border border-gray-300 bg-white py-2 px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'>
+                  Previous
+                </span>
+              </li>
+              <li>
+                <a
+                  className='border border-gray-300 bg-white bg-white py-2 px-3 leading-tight text-gray-500 text-gray-500  hover:bg-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:text-gray-700'
+                  href='/students?page=8'
+                >
+                  1
+                </a>
+              </li>
+              <li>
+                <a
+                  className='rounded-r-lg border border-gray-300 bg-white py-2 px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
+                  href='/students?page=1'
+                >
+                  Next
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      )}
     </div>
   )
 }
