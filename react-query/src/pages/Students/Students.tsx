@@ -1,7 +1,9 @@
+import { useQuery } from '@tanstack/react-query'
 import { getStudents } from 'apis/students.api'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Students as StudentsType, Student } from 'types/students.type'
+import { useQueryString } from 'utils/utils'
 
 const RenderListStudents = (listStudents: Student[]): JSX.Element => {
   return (
@@ -35,6 +37,16 @@ const RenderListStudents = (listStudents: Student[]): JSX.Element => {
 }
 
 export default function Students() {
+  const queryString: { page?: string } = useQueryString()
+  const page = Number(queryString.page) || 1
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['students', page],
+    queryFn: () => getStudents(page, 10)
+  })
+  console.log('data', data)
+
+  /** 
   const [listStudents, setListStudents] = useState<StudentsType>([])
   const [loading, setLoading] = useState<boolean>(true)
   useEffect(() => {
@@ -48,10 +60,11 @@ export default function Students() {
       })
   }, [])
   // console.log('listStudents', listStudents)
+  */
   return (
     <div>
       <h1 className='text-lg'>Students</h1>
-      {loading && (
+      {isLoading && (
         <div role='status' className='mt-6 animate-pulse'>
           <div className='mb-4 h-4  rounded bg-gray-200 dark:bg-gray-700' />
           <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
@@ -90,11 +103,11 @@ export default function Students() {
               </th>
             </tr>
           </thead>
-          <tbody>{!loading && RenderListStudents(listStudents)}</tbody>
+          <tbody>{!isLoading && data && RenderListStudents(data.data)}</tbody>
         </table>
       </div>
 
-      {!loading && (
+      {!isLoading && (
         <div className='mt-6 flex justify-center'>
           <nav aria-label='Page navigation example'>
             <ul className='inline-flex -space-x-px'>
