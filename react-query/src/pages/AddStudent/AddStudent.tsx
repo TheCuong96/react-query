@@ -1,15 +1,57 @@
+import { useMutation } from '@tanstack/react-query'
+import { addStudent } from 'apis/students.api'
+import { useState } from 'react'
+import { useMatch } from 'react-router-dom'
+import { Student } from 'types/students.type'
+
+type FormStateType = Omit<Student, 'id'> | Student
+const initalFormData: FormStateType = {
+  avatar: '',
+  email: '',
+  btc_address: '',
+  country: '',
+  first_name: '',
+  gender: 'other',
+  last_name: ''
+}
+const gender = {
+  male: 'Male',
+  female: 'Female',
+  other: 'Other'
+}
 export default function AddStudent() {
+  const addMatch = useMatch('/students/add') // thằng này dùng để kiểm tra xem url ta có đang match với theo đúng url /students/add trong đây hay không, vì Component này có thể được truy cập dưới dạng id là /students/:id nên ta mới dùng useMatch như 1 kiểu điều kiện if
+  // và khi nó match nó sẽ trả về cho ta 1 data mà ta có thể dùng để xử lý trong component này tùy theo cách ta cài đặt
+  console.log(addMatch)
+  const isAddMode = Boolean(addMatch) // xác thực xem nó có data hay không thôi dưới dạng true false
+  const [formState, setFormState] = useState<FormStateType>(initalFormData)
+
+  const { mutate } = useMutation({
+    mutationFn: (body: FormStateType) => {
+      return addStudent(body)
+    }
+  })
+  const handleChange = (name: keyof FormStateType) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState((prev) => ({ ...prev, [name]: event.target.value }))
+  }
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    mutate(formState)
+    console.log('formState', formState)
+  }
   return (
     <div>
-      <h1 className='text-lg'>Add/Edit Student</h1>
-      <form className='mt-6'>
+      <h1 className='text-lg'>{isAddMode ? 'Add' : 'Edit'} Student</h1>
+      <form className='mt-6' onSubmit={handleSubmit}>
         <div className='group relative z-0 mb-6 w-full'>
           <input
-            type='email'
+            type='text'
             name='floating_email'
             id='floating_email'
             className='peer block w-full appearance-none border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-0 dark:border-gray-600 dark:text-white dark:focus:border-blue-500'
             placeholder=' '
+            value={formState.email}
+            onChange={handleChange('email')}
             required
           />
           <label
@@ -18,6 +60,12 @@ export default function AddStudent() {
           >
             Email address
           </label>
+          {/* {errorForm && (
+            <p className='mt-2 text-sm text-red-600'>
+              <span className='font-medium'>Lỗi! </span>
+              {errorForm.email}
+            </p>
+          )} */}
         </div>
 
         <div className='group relative z-0 mb-6 w-full'>
@@ -28,6 +76,9 @@ export default function AddStudent() {
                   id='gender-1'
                   type='radio'
                   name='gender'
+                  value={gender.male}
+                  checked={formState.gender === gender.male}
+                  onChange={handleChange('gender')}
                   className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600'
                 />
                 <label htmlFor='gender-1' className='ml-2 text-sm font-medium text-gray-900 dark:text-gray-300'>
@@ -36,10 +87,12 @@ export default function AddStudent() {
               </div>
               <div className='mb-4 flex items-center'>
                 <input
-                  defaultChecked
                   id='gender-2'
                   type='radio'
                   name='gender'
+                  value={gender.female}
+                  checked={formState.gender === gender.female}
+                  onChange={handleChange('gender')}
                   className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600'
                 />
                 <label htmlFor='gender-2' className='ml-2 text-sm font-medium text-gray-900 dark:text-gray-300'>
@@ -48,10 +101,12 @@ export default function AddStudent() {
               </div>
               <div className='flex items-center'>
                 <input
-                  defaultChecked
                   id='gender-3'
                   type='radio'
                   name='gender'
+                  value={gender.other}
+                  checked={formState.gender === gender.other}
+                  onChange={handleChange('gender')}
                   className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600'
                 />
                 <label htmlFor='gender-3' className='ml-2 text-sm font-medium text-gray-900 dark:text-gray-300'>
@@ -66,6 +121,8 @@ export default function AddStudent() {
             type='text'
             name='country'
             id='country'
+            value={formState.country}
+            onChange={handleChange('country')}
             className='peer block w-full appearance-none border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-0 dark:border-gray-600 dark:text-white dark:focus:border-blue-500'
             placeholder=' '
             required
@@ -81,12 +138,13 @@ export default function AddStudent() {
           <div className='group relative z-0 mb-6 w-full'>
             <input
               type='tel'
-              pattern='[0-9]{3}-[0-9]{3}-[0-9]{4}'
               name='first_name'
               id='first_name'
               className='peer block w-full appearance-none border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-0 dark:border-gray-600 dark:text-white dark:focus:border-blue-500'
               placeholder=' '
               required
+              value={formState.first_name}
+              onChange={handleChange('first_name')}
             />
             <label
               htmlFor='first_name'
@@ -103,6 +161,8 @@ export default function AddStudent() {
               className='peer block w-full appearance-none border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-0 dark:border-gray-600 dark:text-white dark:focus:border-blue-500'
               placeholder=' '
               required
+              value={formState.last_name}
+              onChange={handleChange('last_name')}
             />
             <label
               htmlFor='last_name'
@@ -121,6 +181,8 @@ export default function AddStudent() {
               className='peer block w-full appearance-none border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-0 dark:border-gray-600 dark:text-white dark:focus:border-blue-500'
               placeholder=' '
               required
+              value={formState.avatar}
+              onChange={handleChange('avatar')}
             />
             <label
               htmlFor='avatar'
@@ -136,6 +198,8 @@ export default function AddStudent() {
               id='btc_address'
               className='peer block w-full appearance-none border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-0 dark:border-gray-600 dark:text-white dark:focus:border-blue-500'
               placeholder=' '
+              value={formState.btc_address}
+              onChange={handleChange('btc_address')}
               required
             />
             <label
@@ -151,7 +215,7 @@ export default function AddStudent() {
           type='submit'
           className='w-full rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 sm:w-auto'
         >
-          Submit
+          {isAddMode ? 'Add' : 'Update'}
         </button>
       </form>
     </div>
