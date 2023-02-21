@@ -6,10 +6,10 @@ import { Link } from 'react-router-dom'
 import { Students as StudentsType, Student } from 'types/students.type'
 import { useQueryString } from 'utils/utils'
 const LIMIT = 10
-const RenderListStudents = (listStudents: Student[]): JSX.Element => {
+const RenderListStudents = (listStudents: StudentsType[]): JSX.Element => {
   return (
     <>
-      {listStudents.map((student: Student) => (
+      {listStudents.map((student: StudentsType) => (
         <tr
           key={student.id}
           className='border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600'
