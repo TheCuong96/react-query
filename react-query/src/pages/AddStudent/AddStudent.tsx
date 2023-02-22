@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { addStudent, getStudent, updateStudent } from 'apis/students.api'
 import { useMemo, useState } from 'react'
 import { useMatch, useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { Student } from 'types/students.type'
 import { isAxiosError } from 'utils/utils'
 
@@ -61,14 +62,12 @@ export default function AddStudent() {
   })
 
   const errorForm: FormError = useMemo(() => {
-    if (
-      isAxiosError<{ error: FormError }>(addStudentMutaion.error) &&
-      addStudentMutaion.error.response?.status === 422
-    ) {
-      return addStudentMutaion.error.response?.data.error
+    const error = isAddMode ? addStudentMutaion.error : updateStudentMutaion.error
+    if (isAxiosError<{ error: FormError }>(error) && error.response?.status === 422) {
+      return error.response?.data.error
     }
     return null
-  }, [addStudentMutaion.error])
+  }, [addStudentMutaion.error, updateStudentMutaion.error, isAddMode])
 
   const handleChange = (name: keyof FormStateType) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormState((prev) => ({ ...prev, [name]: event.target.value }))
@@ -84,6 +83,7 @@ export default function AddStudent() {
         onSuccess: () => {
           // cách 1: sau khi gọi api thành công thì set form lại
           setFormState(initalFormData)
+          toast.success('Tạo mới thành công')
         }
       })
       // try {
@@ -98,6 +98,7 @@ export default function AddStudent() {
       updateStudentMutaion.mutate(undefined, {
         onSuccess: () => {
           setFormState(initalFormData)
+          toast.success('Cập nhật thành công')
         }
       })
     }

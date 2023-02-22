@@ -1,12 +1,16 @@
-import { useQuery } from '@tanstack/react-query'
-import { getStudents } from 'apis/students.api'
+import { UseMutationResult, useMutation, useQuery } from '@tanstack/react-query'
+import { deleteStudent, getStudents } from 'apis/students.api'
+import { AxiosResponse } from 'axios'
 import classNames from 'classnames'
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Students as StudentsType, Student } from 'types/students.type'
+import { toast } from 'react-toastify'
+import { Students as StudentsType } from 'types/students.type'
 import { useQueryString } from 'utils/utils'
 const LIMIT = 10
-const RenderListStudents = (listStudents: StudentsType[]): JSX.Element => {
+const RenderListStudents = (
+  listStudents: StudentsType[],
+  deleteStudentMutaion: UseMutationResult<AxiosResponse<{}, any>, unknown, string | number, unknown>
+): JSX.Element => {
   return (
     <>
       {listStudents.map((student: StudentsType) => (
@@ -29,7 +33,12 @@ const RenderListStudents = (listStudents: StudentsType[]): JSX.Element => {
             >
               Edit
             </Link>
-            <button className='font-medium text-red-600 dark:text-red-500'>Delete</button>
+            <button
+              className='font-medium text-red-600 dark:text-red-500'
+              onClick={() => deleteStudentMutaion.mutate(student.id)}
+            >
+              Delete
+            </button>
           </td>
         </tr>
       ))}
@@ -67,7 +76,14 @@ export default function Students() {
   })
   const totalPage = Math.ceil(Number(data?.headers['x-total-count'] || 0) / LIMIT)
   console.log('totalPage', Array(totalPage).fill(0))
-
+  const deleteStudentMutaion = useMutation({
+    mutationFn: (id: number | string) => {
+      return deleteStudent(id)
+    },
+    onSuccess(_, id) {
+      toast.success(`xóa thành công student có id là ${id}`)
+    }
+  })
   /** 
   const [listStudents, setListStudents] = useState<StudentsType>([])
   const [loading, setLoading] = useState<boolean>(true)
@@ -133,7 +149,7 @@ export default function Students() {
               </th>
             </tr>
           </thead>
-          <tbody>{!isLoading && data && RenderListStudents(data.data)}</tbody>
+          <tbody>{!isLoading && data && RenderListStudents(data.data, deleteStudentMutaion)}</tbody>
         </table>
       </div>
 
