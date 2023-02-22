@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { addStudent, getStudent } from 'apis/students.api'
+import { addStudent, getStudent, updateStudent } from 'apis/students.api'
 import { useMemo, useState } from 'react'
 import { useMatch, useParams } from 'react-router-dom'
 import { Student } from 'types/students.type'
@@ -49,6 +49,12 @@ export default function AddStudent() {
     }
   })
 
+  const updateStudentMutaion = useMutation({
+    mutationFn: (_) => {
+      return updateStudent(id as string, formState as Student)
+    }
+  })
+
   const errorForm: FormError = useMemo(() => {
     if (isAxiosError<{ error: FormError }>(error) && error.response?.status === 422) {
       return error.response?.data.error
@@ -65,22 +71,28 @@ export default function AddStudent() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-
-    mutate(formState, {
-      onSuccess: () => {
-        // cách 1: sau khi gọi api thành công thì set form lại
-        setFormState(initalFormData)
-      }
-    })
-
-    // try {
-    //   // cách 2: sau khi gọi api thành công thì set form lại
-    //   const data = await mutateAsync(formState)
-    //   setFormState(initalFormData)
-    //   console.log('data', data)
-    // } catch (error) {
-    //   console.log('error', error)
-    // }
+    if (isAddMode) {
+      mutate(formState, {
+        onSuccess: () => {
+          // cách 1: sau khi gọi api thành công thì set form lại
+          setFormState(initalFormData)
+        }
+      })
+      // try {
+      //   // cách 2: sau khi gọi api thành công thì set form lại
+      //   const data = await mutateAsync(formState)
+      //   setFormState(initalFormData)
+      //   console.log('data', data)
+      // } catch (error) {
+      //   console.log('error', error)
+      // }
+    } else {
+      updateStudentMutaion.mutate(undefined, {
+        onSuccess: () => {
+          setFormState(initalFormData)
+        }
+      })
+    }
   }
   return (
     <div>
