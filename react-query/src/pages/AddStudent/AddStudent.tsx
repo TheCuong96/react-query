@@ -1,8 +1,9 @@
 import { useMutation } from '@tanstack/react-query'
 import { addStudent } from 'apis/students.api'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useMatch } from 'react-router-dom'
 import { Student } from 'types/students.type'
+import { isAxiosError } from 'utils/utils'
 
 type FormStateType = Omit<Student, 'id'> | Student
 const initalFormData: FormStateType = {
@@ -14,6 +15,11 @@ const initalFormData: FormStateType = {
   gender: 'other',
   last_name: ''
 }
+type FormError =
+  | {
+      [key in keyof FormStateType]: string
+    }
+  | null
 const gender = {
   male: 'Male',
   female: 'Female',
@@ -26,18 +32,43 @@ export default function AddStudent() {
   const isAddMode = Boolean(addMatch) // xác thực xem nó có data hay không thôi dưới dạng true false
   const [formState, setFormState] = useState<FormStateType>(initalFormData)
 
-  const { mutate } = useMutation({
+  const { mutate, data, error, reset, mutateAsync } = useMutation({
     mutationFn: (body: FormStateType) => {
       return addStudent(body)
     }
   })
+  const errorForm: FormError = useMemo(() => {
+    if (isAxiosError<{ error: FormError }>(error) && error.response?.status === 422) {
+      return error.response?.data.error
+    }
+    return null
+  }, [error])
+
   const handleChange = (name: keyof FormStateType) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormState((prev) => ({ ...prev, [name]: event.target.value }))
+    if (data || error) {
+      reset() // dùng để reset lại error
+    }
   }
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    mutate(formState)
-    console.log('formState', formState)
+
+    mutate(formState, {
+      onSuccess: () => {
+        // cách 1: sau khi gọi api thành công thì set form lại
+        setFormState(initalFormData)
+      }
+    })
+
+    // try {
+    //   // cách 2: sau khi gọi api thành công thì set form lại
+    //   const data = await mutateAsync(formState)
+    //   setFormState(initalFormData)
+    //   console.log('data', data)
+    // } catch (error) {
+    //   console.log('error', error)
+    // }
   }
   return (
     <div>
@@ -60,12 +91,12 @@ export default function AddStudent() {
           >
             Email address
           </label>
-          {/* {errorForm && (
+          {errorForm && (
             <p className='mt-2 text-sm text-red-600'>
               <span className='font-medium'>Lỗi! </span>
               {errorForm.email}
             </p>
-          )} */}
+          )}
         </div>
 
         <div className='group relative z-0 mb-6 w-full'>
