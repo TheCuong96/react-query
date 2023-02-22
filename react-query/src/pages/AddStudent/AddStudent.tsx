@@ -34,12 +34,17 @@ export default function AddStudent() {
   const { id } = useParams()
   console.log('id', id)
 
-  const { mutate, data, error, reset, mutateAsync } = useMutation({
+  // const { mutate, data, error, reset, mutateAsync } = useMutation({
+  //   mutationFn: (body: FormStateType) => {
+  //     return addStudent(body)
+  //   }
+  // })
+
+  const addStudentMutaion = useMutation({
     mutationFn: (body: FormStateType) => {
       return addStudent(body)
     }
   })
-
   useQuery({
     queryKey: ['student', id],
     queryFn: () => getStudent(id as string),
@@ -56,23 +61,26 @@ export default function AddStudent() {
   })
 
   const errorForm: FormError = useMemo(() => {
-    if (isAxiosError<{ error: FormError }>(error) && error.response?.status === 422) {
-      return error.response?.data.error
+    if (
+      isAxiosError<{ error: FormError }>(addStudentMutaion.error) &&
+      addStudentMutaion.error.response?.status === 422
+    ) {
+      return addStudentMutaion.error.response?.data.error
     }
     return null
-  }, [error])
+  }, [addStudentMutaion.error])
 
   const handleChange = (name: keyof FormStateType) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormState((prev) => ({ ...prev, [name]: event.target.value }))
-    if (data || error) {
-      reset() // dùng để reset lại error
+    if (addStudentMutaion.data || addStudentMutaion.error) {
+      addStudentMutaion.reset() // dùng để reset lại error
     }
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (isAddMode) {
-      mutate(formState, {
+      addStudentMutaion.mutate(formState, {
         onSuccess: () => {
           // cách 1: sau khi gọi api thành công thì set form lại
           setFormState(initalFormData)
