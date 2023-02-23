@@ -60,7 +60,7 @@ export default function Students() {
       const controller = new AbortController()
       setTimeout(() => {
         controller.abort()
-      }, 5000) // đây là cách xử lý hủy fetch data 1 cách bị động sau 5 giây, nếu sau 5 giây ko lấy được data thì sẽ hủy fetch data
+      }, 9000) // đây là cách xử lý hủy fetch data 1 cách bị động sau 5 giây, nếu sau 5 giây ko lấy được data thì sẽ hủy fetch data
       return getStudents(page, LIMIT, controller.signal)
     },
     retry: 0, // này là số lần nó sẽ tự động gọi lại khi bị hủy tự động như trên, mặc định sẽ là 3 lần, ta đang set còn 0 lần
