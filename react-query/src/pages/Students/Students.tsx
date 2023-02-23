@@ -1,4 +1,4 @@
-import { UseMutationResult, useMutation, useQuery } from '@tanstack/react-query'
+import { UseMutationResult, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { deleteStudent, getStudents } from 'apis/students.api'
 import { AxiosResponse } from 'axios'
 import classNames from 'classnames'
@@ -49,7 +49,7 @@ const RenderListStudents = (
 export default function Students() {
   const queryString: { page?: string } = useQueryString()
   const page = Number(queryString.page) || 1
-
+  const userQuery = useQueryClient()
   const { data, isLoading } = useQuery({
     queryKey: ['students', page], // queryKey này chúng ta có thể hiểu phần tử thứ nhất là 1 key giống như trong localStorage, và nó dùng để định danh cái api mà chúng ta đang tương tác, nhờ vậy nên ReactQueryDevtools mới có thể truy ra và show lên cho ta xem..., còn page ở đây nó giống như param trong useEffect, khi thằng này bị thay đổi thì nó sẽ chạy lại queryFn, và queryFn sẽ là 1 hàm call api thông thường
     queryFn: () => getStudents(page, LIMIT),
@@ -76,14 +76,17 @@ export default function Students() {
   })
   const totalPage = Math.ceil(Number(data?.headers['x-total-count'] || 0) / LIMIT)
   console.log('totalPage', Array(totalPage).fill(0))
+
   const deleteStudentMutaion = useMutation({
     mutationFn: (id: number | string) => {
       return deleteStudent(id)
     },
     onSuccess(_, id) {
       toast.success(`xóa thành công student có id là ${id}`)
+      userQuery.invalidateQueries({ queryKey: ['students', page], exact: true }) // khi delete thành công thì nó sẽ gọi lại những api có queryKey là student để làm mới nó
     }
   })
+
   /** 
   const [listStudents, setListStudents] = useState<StudentsType>([])
   const [loading, setLoading] = useState<boolean>(true)
