@@ -35,9 +35,9 @@ server.use((req, res, next) => {
       });
     }
   }
-  // setTimeout(() => {
-  next();
-  // }, DELAY)
+  setTimeout(() => {
+    next();
+  }, DELAY);
 });
 
 router.render = (req, res) => {

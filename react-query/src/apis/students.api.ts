@@ -1,7 +1,11 @@
 import { Student, Students } from 'types/students.type'
 import http from 'utils/http'
 
-export const getStudents = (page: number | string, limit: number | string, signal?: AbortSignal) =>
+export const getStudents = (
+  page: number | string,
+  limit: number | string,
+  signal?: AbortSignal | undefined // undefined mình thêm undefined để mọi người chú ý là phải add thêm signal cả bên đây nữa
+) =>
   http.get<Students[]>('students', {
     params: {
       _page: page,

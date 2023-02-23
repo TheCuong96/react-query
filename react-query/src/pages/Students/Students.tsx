@@ -52,9 +52,18 @@ export default function Students() {
   const queryString: { page?: string } = useQueryString()
   const page = Number(queryString.page) || 1
   const queryClient = useQueryClient()
-  const { data, isLoading } = useQuery({
+  // const { data, isLoading, refetch } = useQuery({
+  const studentsQuery = useQuery({
     queryKey: ['students', page], // queryKey này chúng ta có thể hiểu phần tử thứ nhất là 1 key giống như trong localStorage, và nó dùng để định danh cái api mà chúng ta đang tương tác, nhờ vậy nên ReactQueryDevtools mới có thể truy ra và show lên cho ta xem..., còn page ở đây nó giống như param trong useEffect, khi thằng này bị thay đổi thì nó sẽ chạy lại queryFn, và queryFn sẽ là 1 hàm call api thông thường
-    queryFn: () => getStudents(page, LIMIT),
+    // queryFn: ({ signal }) => getStudents(page, LIMIT, signal), // cách setup khi ta chủ động hủy fetch api
+    queryFn: () => {
+      const controller = new AbortController()
+      setTimeout(() => {
+        controller.abort()
+      }, 5000) // đây là cách xử lý hủy fetch data 1 cách bị động sau 5 giây, nếu sau 5 giây ko lấy được data thì sẽ hủy fetch data
+      return getStudents(page, LIMIT, controller.signal)
+    },
+    retry: 0, // này là số lần nó sẽ tự động gọi lại khi bị hủy tự động như trên, mặc định sẽ là 3 lần, ta đang set còn 0 lần
     // khi ta call những data có cùng 1 key ví dụ như ở đây là key student
     // thì ghi call data ở page 1 nó sẽ có 2 trạng thái là đã stale(cũ) hoặc chưa stale(cũ)
     // stale(cũ) ở đây mặc định là 0 time, thì khi call xong thường sẽ là stale(cũ) ngay lập tức
@@ -76,7 +85,7 @@ export default function Students() {
     // cacheTime: 5 * 1000 // mặc định thì sẽ không có thời gian cacheTime, hoặc có thể hiểu là vô thời hạn
     keepPreviousData: true // là giữ lại data trước đó, và vẫn âm thầm call data mới, khi call xong thì cập nhật cho ta data mới, nên isLoading sẽ luôn là flase
   })
-  const totalPage = Math.ceil(Number(data?.headers['x-total-count'] || 0) / LIMIT)
+  const totalPage = Math.ceil(Number(studentsQuery.data?.headers['x-total-count'] || 0) / LIMIT)
   console.log('totalPage', Array(totalPage).fill(0))
 
   const deleteStudentMutaion = useMutation({
@@ -112,10 +121,26 @@ export default function Students() {
       // staleTime: 10 * 1000
     })
   }
-
+  const refetchStudents = () => {
+    studentsQuery.refetch()
+  }
+  const cancelRequestStudents = () => {
+    queryClient.cancelQueries({ queryKey: ['students', page] }) //đây là cách ta hủy fetch data 1 cách chủ động
+  }
   return (
     <div>
       <h1 className='text-lg'>Students</h1>
+
+      <div>
+        <button className='mt-6 rounded bg-pink-700 px-5 py-2 text-white' onClick={refetchStudents}>
+          Refetch Students
+        </button>
+      </div>
+      <div>
+        <button className='mt-6 rounded bg-pink-700 px-5 py-2 text-white' onClick={cancelRequestStudents}>
+          Cancel Request Students
+        </button>
+      </div>
       <div className='mt-6'>
         <Link
           to='/students/add'
@@ -124,7 +149,7 @@ export default function Students() {
           Add Student
         </Link>
       </div>
-      {isLoading && (
+      {studentsQuery.isLoading && (
         <div role='status' className='mt-6 animate-pulse'>
           <div className='mb-4 h-4  rounded bg-gray-200 dark:bg-gray-700' />
           <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
@@ -164,12 +189,14 @@ export default function Students() {
             </tr>
           </thead>
           <tbody>
-            {!isLoading && data && RenderListStudents(data.data, deleteStudentMutaion, handlePrefetchStudent)}
+            {!studentsQuery.isLoading &&
+              studentsQuery.data &&
+              RenderListStudents(studentsQuery.data.data, deleteStudentMutaion, handlePrefetchStudent)}
           </tbody>
         </table>
       </div>
 
-      {!isLoading && (
+      {!studentsQuery.isLoading && (
         <div className='mt-6 flex justify-center'>
           <nav aria-label='Page navigation example'>
             <ul className='inline-flex -space-x-px'>
