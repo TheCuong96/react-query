@@ -1,5 +1,5 @@
 import { UseMutationResult, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { deleteStudent, getStudents } from 'apis/students.api'
+import { deleteStudent, getStudent, getStudents } from 'apis/students.api'
 import { AxiosResponse } from 'axios'
 import classNames from 'classnames'
 import { Link } from 'react-router-dom'
@@ -9,7 +9,8 @@ import { useQueryString } from 'utils/utils'
 const LIMIT = 10
 const RenderListStudents = (
   listStudents: StudentsType[],
-  deleteStudentMutaion: UseMutationResult<AxiosResponse<{}, any>, unknown, string | number, unknown>
+  deleteStudentMutaion: UseMutationResult<AxiosResponse<{}, any>, unknown, string | number, unknown>,
+  handlePrefetchStudent: any
 ): JSX.Element => {
   return (
     <>
@@ -17,6 +18,7 @@ const RenderListStudents = (
         <tr
           key={student.id}
           className='border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600'
+          onMouseEnter={() => handlePrefetchStudent(student.id)}
         >
           <td className='py-4 px-6'>{student.id}</td>
           <td className='py-4 px-6'>
@@ -49,7 +51,7 @@ const RenderListStudents = (
 export default function Students() {
   const queryString: { page?: string } = useQueryString()
   const page = Number(queryString.page) || 1
-  const userQuery = useQueryClient()
+  const queryClient = useQueryClient()
   const { data, isLoading } = useQuery({
     queryKey: ['students', page], // queryKey này chúng ta có thể hiểu phần tử thứ nhất là 1 key giống như trong localStorage, và nó dùng để định danh cái api mà chúng ta đang tương tác, nhờ vậy nên ReactQueryDevtools mới có thể truy ra và show lên cho ta xem..., còn page ở đây nó giống như param trong useEffect, khi thằng này bị thay đổi thì nó sẽ chạy lại queryFn, và queryFn sẽ là 1 hàm call api thông thường
     queryFn: () => getStudents(page, LIMIT),
@@ -83,7 +85,7 @@ export default function Students() {
     },
     onSuccess(_, id) {
       toast.success(`xóa thành công student có id là ${id}`)
-      userQuery.invalidateQueries({ queryKey: ['students', page], exact: true }) // khi delete thành công thì nó sẽ gọi lại những api có queryKey là student để làm mới nó
+      queryClient.invalidateQueries({ queryKey: ['students', page], exact: true }) // khi delete thành công thì nó sẽ gọi lại những api có queryKey là student để làm mới nó
     }
   })
 
@@ -102,6 +104,15 @@ export default function Students() {
   }, [])
   // console.log('listStudents', listStudents)
   */
+
+  const handlePrefetchStudent = (id: number) => {
+    // queryClient.prefetchQuery này dùng để fetch data khi ta chỉ mới hover và khi thực sự nhảy vào edit hay làm điều gì đó cần ta cần data này thì nó sẽ không gọi lại 1 lần nữa ở nơi đó, vì ở đây đã gọi rồi, lưu ý là với điều kiện data đó phải còn mới, nên ta nên set staleTime: 1000 * 10 thời gian cũ của nó ở nơi đó
+    queryClient.prefetchQuery(['student', String(id)], {
+      queryFn: () => getStudent(id)
+      // staleTime: 10 * 1000
+    })
+  }
+
   return (
     <div>
       <h1 className='text-lg'>Students</h1>
@@ -152,7 +163,9 @@ export default function Students() {
               </th>
             </tr>
           </thead>
-          <tbody>{!isLoading && data && RenderListStudents(data.data, deleteStudentMutaion)}</tbody>
+          <tbody>
+            {!isLoading && data && RenderListStudents(data.data, deleteStudentMutaion, handlePrefetchStudent)}
+          </tbody>
         </table>
       </div>
 

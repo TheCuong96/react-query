@@ -6,7 +6,13 @@ import reportWebVitals from './reportWebVitals'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false // mỗi khi ta focus vào Component có call api thì nó sẽ auto gọi lại api trong hook useQuery của Component đó thì thằng này dùng để ngăn chặn điều đó xảy ra, nghĩa là nó sẽ không gọi lại api nữa mỗi khi ta focus vào
+    }
+  }
+})
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
   <React.StrictMode>
